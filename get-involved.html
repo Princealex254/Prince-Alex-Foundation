@@ -286,6 +286,73 @@
                 border-top: 1px solid #444;
             }
         }
+
+        /* Custom Modal Styles (reused from contact.html) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: #002366;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .modal-content .btn-close {
+            background-color: #002366;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content .btn-close:hover {
+            background-color: #FFD700;
+            color: #002366;
+        }
+
+        .modal-content.success h3 {
+            color: #28a745; /* Green for success */
+        }
+
+        .modal-content.error h3 {
+            color: #dc3545; /* Red for error */
+        }
     </style>
 </head>
 
@@ -396,41 +463,127 @@
         </div>
     </footer>
 
-    <script>
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
+    <!-- Custom Message Modal (reused from contact.html) -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="btn-close" onclick="hideMessage()">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase using global config
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Global variable for app ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Function to show custom modal messages (reused from contact.html)
+        function showMessage(title, message, type = 'info') {
+            const modal = document.getElementById('messageModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalContent = modal.querySelector('.modal-content');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalContent.classList.remove('success', 'error'); // Clear previous types
+            modalContent.classList.add(type); // Add current type
+
+            modal.classList.add('show');
+        }
+
+        // Function to hide custom modal messages (reused from contact.html)
+        function hideMessage() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
                 });
             });
+
+            // Mobile nav toggle
+            function toggleMenu() {
+                const nav = document.getElementById('navbarLinks');
+                nav.classList.toggle('show');
+            }
+            
+            // Donate button functionality
+            document.getElementById('donate-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Instead of prompt, use a custom message to explain it's a trial
+                showMessage('Donation Information', 'Thank you for your willingness to assist! This is a trial website, and direct donations are not processed here. Please check back later for official donation methods.', 'info');
+            });
+
+            // Volunteer/Partner form submission
+            const involvedForm = document.getElementById('involved-form');
+            if (involvedForm) {
+                involvedForm.addEventListener('submit', async function(e) {
+                    e.preventDefault(); // Prevent default form submission
+
+                    // Get form data
+                    const name = involvedForm.querySelector('#name').value;
+                    const email = involvedForm.querySelector('#email').value;
+                    const interest = involvedForm.querySelector('#interest').value;
+                    const message = involvedForm.querySelector('#message').value;
+
+                    try {
+                        // Authenticate user (anonymously or with custom token)
+                        if (typeof __initial_auth_token !== 'undefined') {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
+                        const userId = auth.currentUser?.uid || crypto.randomUUID();
+
+                        // Determine form type based on interest or a default
+                        const formType = interest.toLowerCase().includes('volunteer') ? 'Volunteer' : 
+                                         interest.toLowerCase().includes('partner') ? 'Partner' : 'General Inquiry';
+
+                        // Add data to Firestore
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/involvedForms`), {
+                            name: name,
+                            email: email,
+                            interest: interest,
+                            message: message,
+                            formType: formType,
+                            timestamp: new Date(),
+                            userId: userId // Store the user ID
+                        });
+
+                        showMessage('Success!', 'Form submitted successfully! Thank you for your interest.', 'success');
+                        this.reset(); // Reset the form after successful submission
+                    } catch (error) {
+                        console.error("Error submitting involved form:", error);
+                        showMessage('Error!', 'Failed to submit form. Please try again later.', 'error');
+                    }
+                });
+            }
         });
 
-        // Mobile nav toggle
+        // Mobile nav toggle function (kept for consistency with original code)
         function toggleMenu() {
             const nav = document.getElementById('navbarLinks');
             nav.classList.toggle('show');
         }
-        
-        // Donate button functionality
-        document.getElementById('donate-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const amount = prompt("Please enter the amount you wish to donate:");
-            if (amount) {
-                const number = prompt("Please enter your M-Pesa number:");
-                if (number) {
-                    alert("This is a trial website, Thank you for your willingness to assist");
-                }
-            }
-        });
-
-        // Volunteer/Partner form submission placeholder
-        document.getElementById('involved-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Form submitted successfully! (This is a trial website, and the form data is not saved).');
-            this.reset();
-        });
     </script>
 </body>
 </html>
