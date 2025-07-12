@@ -272,6 +272,73 @@
                 border-top: 1px solid #444;
             }
         }
+
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: #002366;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .modal-content .btn-close {
+            background-color: #002366;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content .btn-close:hover {
+            background-color: #FFD700;
+            color: #002366;
+        }
+
+        .modal-content.success h3 {
+            color: #28a745; /* Green for success */
+        }
+
+        .modal-content.error h3 {
+            color: #dc3545; /* Red for error */
+        }
     </style>
 </head>
 
@@ -383,7 +450,51 @@
         </div>
     </footer>
 
-    <script>
+    <!-- Custom Message Modal -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="btn-close" onclick="hideMessage()">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase using global config
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Global variable for app ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Function to show custom modal messages
+        function showMessage(title, message, type = 'info') {
+            const modal = document.getElementById('messageModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalContent = modal.querySelector('.modal-content');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalContent.classList.remove('success', 'error'); // Clear previous types
+            modalContent.classList.add(type); // Add current type
+
+            modal.classList.add('show');
+        }
+
+        // Function to hide custom modal messages
+        function hideMessage() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('show');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const navbarToggle = document.querySelector('.navbar-toggle');
             const navbarLinks = document.getElementById('navbarLinks');
@@ -394,16 +505,53 @@
                 });
             }
 
-            // Contact form submission placeholder
+            // Contact form submission
             const contactForm = document.getElementById('contact-form');
             if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    alert('Message sent successfully! Thank you for contacting us.');
-                    this.reset();
+                contactForm.addEventListener('submit', async function(e) {
+                    e.preventDefault(); // Prevent default form submission
+
+                    // Get form data
+                    const name = contactForm.querySelector('#name').value;
+                    const email = contactForm.querySelector('#email').value;
+                    const interest = contactForm.querySelector('#interest').value;
+                    const message = contactForm.querySelector('#message').value;
+
+                    try {
+                        // Authenticate user (anonymously or with custom token)
+                        if (typeof __initial_auth_token !== 'undefined') {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
+                        const userId = auth.currentUser?.uid || crypto.randomUUID();
+
+                        // Add data to Firestore
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/contactMessages`), {
+                            name: name,
+                            email: email,
+                            interest: interest,
+                            message: message,
+                            timestamp: new Date(),
+                            userId: userId // Store the user ID
+                        });
+
+                        showMessage('Success!', 'Message sent successfully! Thank you for contacting us.', 'success');
+                        this.reset(); // Reset the form after successful submission
+                    } catch (error) {
+                        console.error("Error submitting contact form:", error);
+                        showMessage('Error!', 'Failed to send message. Please try again later.', 'error');
+                    }
                 });
             }
         });
+
+        // Mobile nav toggle function (kept for consistency with original code)
+        function toggleMenu() {
+            const nav = document.getElementById('navbarLinks');
+            nav.classList.toggle('show');
+        }
     </script>
 </body>
 </html>
