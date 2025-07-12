@@ -329,6 +329,73 @@
               grid-template-columns: 1fr; /* Stack cards on small screens */
           }
         }
+
+        /* Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: #002366;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .modal-content .btn-close {
+            background-color: #002366;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content .btn-close:hover {
+            background-color: #FFD700;
+            color: #002366;
+        }
+
+        .modal-content.success h3 {
+            color: #28a745; /* Green for success */
+        }
+
+        .modal-content.error h3 {
+            color: #dc3545; /* Red for error */
+        }
     </style>
 </head>
 
@@ -368,7 +435,8 @@
                         <h3>Add New Pictorial</h3>
                         <form id="add-pictorial-form">
                             <label for="pictorial-image">Select an image to upload:</label>
-                            <input type="file" id="pictorial-image" name="pictorialImage" accept="image/*" required>
+                            <input type="file" id="pictorial-image" name="pictorialImage" accept="image/*">
+                            <p style="font-size: 0.8em; color: #777; margin-top: -0.5rem; margin-bottom: 1rem;">(Image upload is for display purposes; actual storage requires backend.)</p>
 
                             <label for="pictorial-alt">Image Description (Alt Text):</label>
                             <input type="text" id="pictorial-alt" name="pictorialAlt" placeholder="e.g., Community outreach event" required>
@@ -385,6 +453,7 @@
 
                             <label for="news-image-upload">Featured Image:</label>
                             <input type="file" id="news-image-upload" name="newsImage" accept="image/*">
+                            <p style="font-size: 0.8em; color: #777; margin-top: -0.5rem; margin-bottom: 1rem;">(Image upload is for display purposes; actual storage requires backend.)</p>
 
                             <label for="news-description">Short Description:</label>
                             <textarea id="news-description" name="newsDescription" rows="3" placeholder="A brief summary of the news item..." required></textarea>
@@ -393,7 +462,8 @@
                         </form>
                     </div>
 
-                    <div class="admin-card" style="grid-column: 1 / -1;"> <h3>Live "Get Involved" Form Submissions</h3>
+                    <div class="admin-card" style="grid-column: 1 / -1;">
+                        <h3>Live "Get Involved" Form Submissions</h3>
                         <div class="admin-table-container">
                             <table class="admin-table">
                                 <thead>
@@ -405,33 +475,13 @@
                                         <th>Message</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>2025-07-10</td>
-                                        <td>John Doe</td>
-                                        <td>john.doe@example.com</td>
-                                        <td>Volunteer</td>
-                                        <td>Interested in education programs.</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025-07-09</td>
-                                        <td>Jane Smith</td>
-                                        <td>jane.smith@example.com</td>
-                                        <td>Donation Inquiry</td>
-                                        <td>Looking to make a corporate donation.</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025-07-08</td>
-                                        <td>Alex Johnson</td>
-                                        <td>alex.j@example.com</td>
-                                        <td>Partnership</td>
-                                        <td>Seeking collaboration for youth empowerment.</td>
-                                    </tr>
-                                    </tbody>
+                                <tbody id="submissions-table-body">
+                                    <!-- Data will be loaded here from Firestore -->
+                                </tbody>
                             </table>
                         </div>
                         <p style="margin-top: 1rem; font-style: italic; color: #555;">
-                            (Note: This table displays placeholder data. In a live system, this would be populated dynamically from your database.)
+                            (This table displays live data from your Firebase Firestore.)
                         </p>
                     </div>
                 </div>
@@ -469,8 +519,52 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    <!-- Custom Message Modal -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <button class="btn-close" onclick="hideMessage()">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase using global config
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Global variable for app ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Function to show custom modal messages
+        function showMessage(title, message, type = 'info') {
+            const modal = document.getElementById('messageModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalContent = modal.querySelector('.modal-content');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalContent.classList.remove('success', 'error'); // Clear previous types
+            modalContent.classList.add(type); // Add current type
+
+            modal.classList.add('show');
+        }
+
+        // Function to hide custom modal messages
+        function hideMessage() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
             const navbarToggle = document.querySelector('.navbar-toggle');
             const navbarLinks = document.getElementById('navbar-links');
 
@@ -480,26 +574,101 @@
                 });
             }
 
-            // Placeholder for form submissions
+            // Authenticate user (anonymously or with custom token) for all Firebase operations
+            if (typeof __initial_auth_token !== 'undefined') {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+
+            const userId = auth.currentUser?.uid || crypto.randomUUID(); // Get user ID after authentication
+
+            // Add Pictorial Form Submission
             const addPictorialForm = document.getElementById('add-pictorial-form');
             if (addPictorialForm) {
-                addPictorialForm.addEventListener('submit', function(e) {
+                addPictorialForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    // This is a client-side placeholder. A real implementation
-                    // would require a backend to handle the file upload.
-                    alert('Pictorial data submitted. A real website requires a backend to handle the file upload and storage.');
-                    this.reset();
+                    
+                    const pictorialAlt = addPictorialForm.querySelector('#pictorial-alt').value;
+                    const pictorialImageInput = addPictorialForm.querySelector('#pictorial-image');
+                    const pictorialFileName = pictorialImageInput.files.length > 0 ? pictorialImageInput.files[0].name : 'no_image_selected';
+
+                    try {
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/pictorials`), {
+                            altText: pictorialAlt,
+                            imageFileName: pictorialFileName, // Store file name, actual upload handled elsewhere
+                            timestamp: new Date(),
+                            addedBy: userId
+                        });
+                        showMessage('Success!', 'Pictorial data submitted successfully. (Image file is not stored in Firestore directly).', 'success');
+                        this.reset();
+                    } catch (error) {
+                        console.error("Error adding pictorial:", error);
+                        showMessage('Error!', 'Failed to add pictorial. Please try again.', 'error');
+                    }
                 });
             }
 
+            // Add News Form Submission
             const addNewsForm = document.getElementById('add-news-form');
             if (addNewsForm) {
-                addNewsForm.addEventListener('submit', function(e) {
+                addNewsForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    alert('News data submitted. A real website requires a backend to handle the file upload and storage.');
-                    this.reset();
+                    
+                    const newsTitle = addNewsForm.querySelector('#news-title').value;
+                    const newsDescription = addNewsForm.querySelector('#news-description').value;
+                    const newsImageInput = addNewsForm.querySelector('#news-image-upload');
+                    const newsFileName = newsImageInput.files.length > 0 ? newsImageInput.files[0].name : 'no_image_selected';
+
+                    try {
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/news`), {
+                            title: newsTitle,
+                            description: newsDescription,
+                            imageFileName: newsFileName, // Store file name, actual upload handled elsewhere
+                            timestamp: new Date(),
+                            addedBy: userId
+                        });
+                        showMessage('Success!', 'News data submitted successfully. (Image file is not stored in Firestore directly).', 'success');
+                        this.reset();
+                    } catch (error) {
+                        console.error("Error adding news item:", error);
+                        showMessage('Error!', 'Failed to add news item. Please try again.', 'error');
+                    }
                 });
             }
+
+            // --- Fetch and display "Get Involved" submissions ---
+            const submissionsTableBody = document.getElementById('submissions-table-body');
+
+            // Listen for real-time updates to the 'involvedForms' collection
+            onSnapshot(query(collection(db, `/artifacts/${appId}/public/data/involvedForms`)), (snapshot) => {
+                submissionsTableBody.innerHTML = ''; // Clear existing rows
+                if (snapshot.empty) {
+                    const row = submissionsTableBody.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 5; // Span all columns
+                    cell.textContent = 'No submissions found.';
+                    cell.style.textAlign = 'center';
+                    cell.style.fontStyle = 'italic';
+                    return;
+                }
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const row = submissionsTableBody.insertRow();
+
+                    // Format timestamp
+                    const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleDateString() : 'N/A';
+
+                    row.insertCell().textContent = date;
+                    row.insertCell().textContent = data.name || 'N/A';
+                    row.insertCell().textContent = data.email || 'N/A';
+                    row.insertCell().textContent = data.interest || 'N/A';
+                    row.insertCell().textContent = data.message || 'N/A';
+                });
+            }, (error) => {
+                console.error("Error fetching 'Get Involved' submissions:", error);
+                showMessage('Error!', 'Failed to load submissions. Please try again later.', 'error');
+            });
         });
     </script>
 </body>
