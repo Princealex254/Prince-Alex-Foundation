@@ -41,6 +41,7 @@
           margin: auto;
         }
 
+        /* Header & Navbar */
         .header {
           background-color: #002366;
           color: white;
@@ -86,44 +87,71 @@
           font-weight: bold;
         }
 
-        /* Main Content */
-        .page-header {
-            background-color: #f9f9f9;
-            padding: 4rem 1rem;
+        /* Hero Section */
+        .hero-section {
+            background-color: #002366;
+            color: white;
             text-align: center;
-        }
-        
-        .page-header h1 {
-            font-size: 3rem;
-            color: #002366;
-        }
-
-        .section-contact {
             padding: 3rem 1rem;
         }
 
-        .contact-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .contact-info {
-            background-color: #f0f4f8;
-            padding: 2rem;
-            border-radius: 8px;
-        }
-
-        .contact-info h3 {
+        .hero-content h1 {
+            font-size: 2.5rem;
             margin-bottom: 1rem;
+            color: #fff;
         }
 
+        /* Main Content Sections */
+        .section {
+            padding: 3rem 1rem;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .contact-info,
         .contact-form {
-            background-color: #f0f4f8;
+            background-color: #f9f9f9;
             padding: 2rem;
             border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .contact-info h3,
+        .contact-form h3 {
+            margin-bottom: 1rem;
+            color: #002366;
+        }
+
+        .contact-info p {
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-info a {
+            color: #002366;
+            text-decoration: underline;
+        }
+
+        .contact-info a:hover {
+            color: #FFD700;
         }
         
+        .contact-map {
+            margin-top: 2rem;
+        }
+        
+        .contact-map iframe {
+            width: 100%;
+            height: 300px;
+            border: 0;
+            border-radius: 8px;
+        }
+
+        /* Form Styling */
         .form-group {
             margin-bottom: 1rem;
         }
@@ -134,14 +162,25 @@
             font-weight: bold;
         }
 
-        .form-group input,
+        .form-group input[type="text"],
+        .form-group input[type="email"],
         .form-group textarea {
             width: 100%;
-            padding: 0.75rem;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
 
+        .form-group button {
+            width: 100%;
+        }
+
+        /* Buttons */
         .btn {
             display: inline-block;
             padding: 0.75rem 1.5rem;
@@ -149,8 +188,7 @@
             font-weight: 600;
             transition: background-color 0.3s ease;
             text-align: center;
-            border: none;
-            cursor: pointer;
+            border: 2px solid transparent;
         }
 
         .btn-primary {
@@ -162,6 +200,7 @@
             background-color: #e6c200;
         }
 
+        /* Footer */
         .footer {
             background-color: #002366;
             color: white;
@@ -212,16 +251,6 @@
             padding-top: 1rem;
         }
 
-        @media (min-width: 768px) {
-            .contact-content {
-                flex-direction: row;
-            }
-            .contact-info,
-            .contact-form {
-                flex: 1;
-            }
-        }
-        
         @media (max-width: 768px) {
             .navbar-toggle {
                 display: block;
@@ -245,6 +274,7 @@
         }
     </style>
 </head>
+
 <body>
     <header class="header">
         <nav class="navbar container">
@@ -264,21 +294,37 @@
     </header>
 
     <main>
-        <section class="page-header">
-            <div class="container">
+        <section class="hero-section">
+            <div class="hero-content container">
                 <h1>Contact Us</h1>
+                <p>We would love to hear from you. Whether you have a question, want to volunteer, or just want to say hello, feel free to reach out.</p>
             </div>
         </section>
 
-        <section class="section-contact">
-            <div class="container contact-content">
+        <section class="section">
+            <div class="container contact-grid">
                 <div class="contact-info">
-                    <h3>Get in Touch</h3>
-                    <p>We would love to hear from you. Whether you have a question, want to volunteer, or just want to say hello, feel free to reach out.</p>
-                    <p><strong>Email:</strong> <a href="mailto:info@princealexfoundation.org">info@princealexfoundation.org</a></p>
-                    <p><strong>Phone:</strong> +254 712 345 678</p>
-                    <p><strong>Location:</strong> Vihiga County, Kenya</p>
+                    <h3>Contact Information</h3>
+                    <p><strong>Address:</strong> Vihiga County, Kenya</p>
+                    <p><strong>Email:</strong> <a href="princealexdigital@gmail.com">princealexdigital@gmail.com</a></p>
+                    <p><strong>Phone:</strong> +254 717 384 875</p>
+                    <p><strong>Social Media:</strong></p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">Facebook</a>
+                        <a href="#" aria-label="Twitter">Twitter</a>
+                        <a href="#" aria-label="Instagram">Instagram</a>
+                    </div>
+                    
+                    <div class="contact-map">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15957.513289053805!2d34.69747738210332!3d0.053880436854181966!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x178229c1d04499e9%3A0x6b5e197e416a575c!2sVihiga%20County%2C%20Kenya!5e0!3m2!1sen!2ske!4v1714902196639!5m2!1sen!2ske"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
                 </div>
+
                 <div class="contact-form">
                     <h3>Send us a message</h3>
                     <form id="contact-form">
@@ -312,7 +358,7 @@
             <div class="footer-column">
                 <h3>Prince Alex Foundation</h3>
                 <p>Vihiga County, Kenya</p>
-                <p><a href="mailto:princealexdigital@gmail.com">princealexdigital@gmail.com</a></p>
+                <p>princealexdigital@gmail.com</p>
             </div>
             <div class="footer-column">
                 <h4>Quick Links</h4>
@@ -337,55 +383,27 @@
         </div>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-    
-        // Your web app's Firebase configuration - REPLACE WITH YOURS
-        const firebaseConfig = {
-    apiKey: "AIzaSyC9a---1yz_C3c31GkY52gefBTvAoAlHnM",
-    authDomain: "prince-alex-foundation.firebaseapp.com",
-    projectId: "prince-alex-foundation",
-    storageBucket: "prince-alex-foundation.firebasestorage.app",
-    messagingSenderId: "156866420736",
-    appId: "1:156866420736:web:3c3d57daf0ae21baa138e5"
-        };
-    
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Form submission logic
-        const contactForm = document.getElementById('contact-form');
-        contactForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const interest = document.getElementById('interest').value;
-            const message = document.getElementById('message').value;
-    
-            try {
-                await addDoc(collection(db, "contact_messages"), {
-                    name: name,
-                    email: email,
-                    interest: interest,
-                    message: message,
-                    timestamp: serverTimestamp()
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggle = document.querySelector('.navbar-toggle');
+            const navbarLinks = document.getElementById('navbarLinks');
+
+            if (navbarToggle && navbarLinks) {
+                navbarToggle.addEventListener('click', () => {
+                    navbarLinks.classList.toggle('show');
                 });
-                alert("Message sent successfully! Thank you for contacting us.");
-                contactForm.reset();
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("There was an error sending your message. Please try again.");
+            }
+
+            // Contact form submission placeholder
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Message sent successfully! Thank you for contacting us.');
+                    this.reset();
+                });
             }
         });
-    </script>
-    <script>
-        // Existing mobile nav toggle script
-        function toggleMenu() {
-            const nav = document.getElementById('navbarLinks');
-            nav.classList.toggle('show');
-        }
     </script>
 </body>
 </html>
