@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Prince Alex Foundation</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Reset and Base Styles */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Lato', sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background-color: #fff;
+        }
+
+        h1, h2, h3, h4 {
+          font-family: 'Playfair Display', serif;
+          color: #002366;
+        }
+
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
+
+        /* Layout */
+        .container {
+          width: 90%;
+          max-width: 1200px;
+          margin: auto;
+        }
+
+        /* Header & Navbar */
+        .header {
+          background-color: #002366;
+          color: white;
+          padding: 1rem 0;
+        }
+
+        .navbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+
+        .navbar-brand img {
+          height: 50px;
+        }
+
+        .navbar-toggle {
+          display: none;
+          font-size: 1.5rem;
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+        }
+
+        .navbar-links {
+          display: flex;
+          gap: 1rem;
+          list-style: none;
+        }
+
+        .navbar-links a {
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+        }
+
+        .navbar-links a.active,
+        .navbar-links a:hover {
+          background-color: #FFD700;
+          color: #002366;
+          font-weight: bold;
+        }
+
+        /* Hero Section (used for page titles on admin page) */
+        .hero-section {
+          background-color: #002366;
+          color: white;
+          text-align: center;
+          padding: 3rem 1rem;
+        }
+
+        .hero-content h1 {
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
+          color: #fff;
+        }
+
+        /* Button Styles */
+        .btn {
+          display: inline-block;
+          padding: 0.75rem 1.5rem;
+          border-radius: 30px;
+          font-weight: 600;
+          transition: background-color 0.3s ease;
+          text-align: center;
+          cursor: pointer; /* Add cursor pointer for buttons */
+        }
+
+        .btn-primary {
+          background-color: #FFD700;
+          color: #002366;
+        }
+
+        .btn-primary:hover {
+          background-color: #e6c200;
+        }
+
+        .btn-secondary {
+          background-color: transparent;
+          border: 2px solid #FFD700;
+          color: #FFD700;
+        }
+
+        .btn-secondary:hover {
+          background-color: #FFD700;
+          color: #002366;
+        }
+
+        /* Section Styling for Admin Panel */
+        .admin-section {
+            padding: 3rem 1rem;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        .admin-section h2 {
+            margin-bottom: 2rem;
+            color: #002366;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .admin-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: left; /* Align text left within cards */
+        }
+
+        .admin-card h3 {
+            margin-bottom: 1.5rem;
+            color: #002366;
+        }
+
+        .admin-card form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .admin-card form input[type="text"],
+        .admin-card form input[type="email"],
+        .admin-card form textarea,
+        .admin-card form input[type="file"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .admin-card form input[type="file"] {
+            padding: 10px 0; /* Adjust padding for file input */
+        }
+
+        .admin-card form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .admin-card form button {
+            margin-top: 1rem;
+            width: auto; /* Override default button width */
+        }
+
+        /* Table Styling for Form Submissions */
+        .admin-table-container {
+            overflow-x: auto; /* Enable horizontal scrolling on small screens */
+            margin-top: 2rem;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1rem;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .admin-table th, .admin-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background-color: #f2f2f2;
+            color: #002366;
+            font-weight: bold;
+        }
+
+        .admin-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: #e6f7ff; /* Light blue on hover */
+        }
+
+        /* Footer */
+        .footer {
+          background-color: #002366;
+          color: white;
+          padding: 2rem 1rem 1rem;
+          margin-top: 4rem; /* Add margin to separate from content */
+        }
+
+        .footer-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 2rem;
+        }
+
+        .footer-column h3,
+        .footer-column h4 {
+          color: #FFD700;
+          margin-bottom: 0.5rem;
+        }
+
+        .footer-column ul {
+          list-style: none;
+        }
+
+        .footer-column ul li a {
+          color: white;
+          transition: color 0.3s ease;
+        }
+
+        .footer-column ul li a:hover {
+          color: #FFD700;
+        }
+
+        .social-links a {
+          display: inline-block;
+          margin-right: 0.5rem;
+          color: white;
+          transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+          color: #FFD700;
+        }
+
+        .footer-bottom {
+          text-align: center;
+          margin-top: 2rem;
+          font-size: 0.9rem;
+          border-top: 1px solid #444;
+          padding-top: 1rem;
+        }
+
+        /* Utility */
+        .text-center {
+          text-align: center;
+        }
+
+        .mt-3 {
+          margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .navbar-toggle {
+            display: block;
+          }
+
+          .navbar-links {
+            flex-direction: column;
+            display: none;
+            width: 100%;
+            background-color: #002366;
+            position: absolute;
+            top: 70px; /* Adjust based on header height */
+            left: 0;
+            z-index: 999;
+          }
+
+          .navbar-links.show {
+            display: flex;
+          }
+
+          .navbar-links a {
+            padding: 1rem;
+            border-top: 1px solid #444;
+          }
+
+          .hero-content h1 {
+            font-size: 2rem;
+          }
+
+          .admin-grid {
+              grid-template-columns: 1fr; /* Stack cards on small screens */
+          }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <nav class="navbar container">
+            <a href="index.html" class="navbar-brand">
+                <img src="img/mylogo.png" alt="Prince Alex Foundation Logo">
+            </a>
+            <button class="navbar-toggle" aria-label="Toggle navigation">
+                ☰
+            </button>
+            <ul class="navbar-links" id="navbar-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="programs.html">Programs</a></li>
+                <li><a href="get-involved.html">Get Involved</a></li>
+                <li><a href="blog.html">News</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="admin.html" class="active">Admin</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-content container">
+                <h1>Admin Dashboard</h1>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <div class="container">
+                <h2>Manage Website Content</h2>
+                <div class="admin-grid">
+                    <div class="admin-card">
+                        <h3>Add New Pictorial</h3>
+                        <form id="add-pictorial-form">
+                            <label for="pictorial-image">Select an image to upload:</label>
+                            <input type="file" id="pictorial-image" name="pictorialImage" accept="image/*" required>
+
+                            <label for="pictorial-alt">Image Description (Alt Text):</label>
+                            <input type="text" id="pictorial-alt" name="pictorialAlt" placeholder="e.g., Community outreach event" required>
+
+                            <button type="submit" class="btn btn-primary">Add Pictorial</button>
+                        </form>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3>Add New News/Update</h3>
+                        <form id="add-news-form">
+                            <label for="news-title">Title:</label>
+                            <input type="text" id="news-title" name="newsTitle" placeholder="e.g., Successful Health Camp" required>
+
+                            <label for="news-image-upload">Featured Image:</label>
+                            <input type="file" id="news-image-upload" name="newsImage" accept="image/*">
+
+                            <label for="news-description">Short Description:</label>
+                            <textarea id="news-description" name="newsDescription" rows="3" placeholder="A brief summary of the news item..." required></textarea>
+
+                            <button type="submit" class="btn btn-primary">Add News Item</button>
+                        </form>
+                    </div>
+
+                    <div class="admin-card" style="grid-column: 1 / -1;"> <h3>Live "Get Involved" Form Submissions</h3>
+                        <div class="admin-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Interest</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025-07-10</td>
+                                        <td>John Doe</td>
+                                        <td>john.doe@example.com</td>
+                                        <td>Volunteer</td>
+                                        <td>Interested in education programs.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-07-09</td>
+                                        <td>Jane Smith</td>
+                                        <td>jane.smith@example.com</td>
+                                        <td>Donation Inquiry</td>
+                                        <td>Looking to make a corporate donation.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025-07-08</td>
+                                        <td>Alex Johnson</td>
+                                        <td>alex.j@example.com</td>
+                                        <td>Partnership</td>
+                                        <td>Seeking collaboration for youth empowerment.</td>
+                                    </tr>
+                                    </tbody>
+                            </table>
+                        </div>
+                        <p style="margin-top: 1rem; font-style: italic; color: #555;">
+                            (Note: This table displays placeholder data. In a live system, this would be populated dynamically from your database.)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-column">
+                <h3>Prince Alex Foundation</h3>
+                <p>Vihiga County, Kenya</p>
+                <p>info@princealexfoundation.org</p>
+            </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="programs.html">Programs</a></li>
+                    <li><a href="get-involved.html">Get Involved</a></li>
+                    <li><a href="blog.html">News</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Follow Us</h4>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook">Facebook</a>
+                    <a href="#" aria-label="Twitter">Twitter</a>
+                    <a href="#" aria-label="Instagram">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Prince Alex Foundation. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggle = document.querySelector('.navbar-toggle');
+            const navbarLinks = document.getElementById('navbar-links');
+
+            if (navbarToggle && navbarLinks) {
+                navbarToggle.addEventListener('click', () => {
+                    navbarLinks.classList.toggle('show');
+                });
+            }
+
+            // Placeholder for form submissions
+            const addPictorialForm = document.getElementById('add-pictorial-form');
+            if (addPictorialForm) {
+                addPictorialForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // This is a client-side placeholder. A real implementation
+                    // would require a backend to handle the file upload.
+                    alert('Pictorial data submitted. A real website requires a backend to handle the file upload and storage.');
+                    this.reset();
+                });
+            }
+
+            const addNewsForm = document.getElementById('add-news-form');
+            if (addNewsForm) {
+                addNewsForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('News data submitted. A real website requires a backend to handle the file upload and storage.');
+                    this.reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
